@@ -242,12 +242,10 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 					);
 					dao.updateResponse(transaction.getKbTransactionPaymentId(), updatedProperties, context.getTenantId());
 					wasRefreshed = true;
-				}
-				catch(BraintreeException e){
-					throw new PaymentPluginApiException("Error connecting to Braintree", e.getMessage());
-				}
-				catch(SQLException e){
-					throw new PaymentPluginApiException("Could not load payment information from database.", e.getMessage());
+				} catch (BraintreeException e) {
+					throw new PaymentPluginApiException("Error connecting to Braintree", e);
+				} catch (SQLException e) {
+					throw new PaymentPluginApiException("Could not load payment information from database", e);
 				}
 			}
 		}
@@ -273,7 +271,7 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 				if(!result.isSuccess()) throw new BraintreeException(result.getMessage());
 			}
 			catch (BraintreeException e){
-				throw new PaymentPluginApiException("Could not update payment method in Braintree",e.getMessage());
+				throw new PaymentPluginApiException("Could not update payment method in Braintree", e);
 			}
 		}
 		else{
@@ -294,7 +292,7 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 					throw new BraintreeException(result.getMessage());
 			}
 			catch(BraintreeException e){
-				throw new PaymentPluginApiException("Could not create payment method in Braintree",e.getMessage());
+				throw new PaymentPluginApiException("Could not create payment method in Braintree", e);
 			}
 		}
 
