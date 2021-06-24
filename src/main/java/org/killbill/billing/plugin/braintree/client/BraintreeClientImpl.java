@@ -172,7 +172,10 @@ public class BraintreeClientImpl implements BraintreeClient {
         try{
             PaymentMethodRequest request = new PaymentMethodRequest()
                     .customerId(newCustomerId)
-                    .token(newBraintreePaymentMethodToken);
+                    .token(newBraintreePaymentMethodToken)
+                    .options()
+                    .verifyCard(false) // Skip verification in the sync call
+                    .done();
 
             result = gateway.paymentMethod().update(currentBraintreePaymentMethodToken, request);
         }
