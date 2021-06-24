@@ -573,13 +573,18 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 						paymentMethod.getToken(),
 						paymentMethod.isDefault(),
 						properties);
-				killbillAPI.getPaymentApi().addPaymentMethod(getAccount(kbAccountId, context),
-						paymentMethod.getToken(),
-						BraintreeActivator.PLUGIN_NAME,
-						paymentMethod.isDefault(),
-						paymentMethodInfo,
-						properties,
-						context);
+				try {
+					killbillAPI.getPaymentApi().addPaymentMethod(getAccount(kbAccountId, context),
+																 paymentMethod.getToken(),
+																 BraintreeActivator.PLUGIN_NAME,
+																 paymentMethod.isDefault(),
+																 paymentMethodInfo,
+																 properties,
+																 context);
+				} catch (final PaymentApiException e) {
+					// In case of errors, opportunistically continue
+					logger.warn("Unable to create new local Braintree payment method {}", paymentMethod.getToken(), e.getCause());
+				}
 			} else {
 				logger.info("Updating existing local Braintree payment method {}", existingPaymentMethodRecord.getKbPaymentMethodId());
 				dao.updatePaymentMethod(UUID.fromString(existingPaymentMethodRecord.getKbPaymentMethodId()),
