@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.kill-bill.billing</groupId>
         <artifactId>killbill-oss-parent</artifactId>
-        <version>0.144.48</version>
+        <version>0.144.59</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>braintree-plugin</artifactId>
@@ -40,8 +40,8 @@
             <version>3.5.0</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>org.osgi.core</artifactId>
                     <groupId>org.osgi</groupId>
+                    <artifactId>org.osgi.core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -109,8 +109,8 @@
             <version>3.13.5</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>reactive-streams</artifactId>
                     <groupId>org.reactivestreams</groupId>
+                    <artifactId>reactive-streams</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -269,7 +269,7 @@
                         <exception>
                             <groupId>org.jooq</groupId>
                             <artifactId>jooq</artifactId>
-                            <expectedVersion>3.14.7</expectedVersion>
+                            <expectedVersion>3.14.13</expectedVersion>
                             <resolvedVersion>3.13.5</resolvedVersion>
                         </exception>
                     </exceptions>

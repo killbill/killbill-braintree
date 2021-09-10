@@ -263,14 +263,17 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 		if(!braintreeCustomerId.equals(BraintreePluginProperties.PROPERTY_FALLBACK_VALUE)){
 			setCustomerIdCustomField(braintreeCustomerId, kbAccountId, context);
 		}
-		if(paymentMethodProps != null && paymentMethodProps.getExternalPaymentMethodId() != null && !paymentMethodProps.getExternalPaymentMethodId().equals(kbPaymentMethodId.toString())){
-			//Payment method was created in Braintree. Synchronize the payment method ID and create in KillBill only
-			try{
-				Result<? extends PaymentMethod> result = braintreeClient.updatePaymentMethod(paymentMethodProps.getExternalPaymentMethodId(),
-						kbPaymentMethodId.toString(), getCustomerIdCustomField(kbAccountId, context));
-				if(!result.isSuccess()) throw new BraintreeException(result.getMessage());
-			}
-			catch (BraintreeException e){
+		if (paymentMethodProps != null &&
+			paymentMethodProps.getExternalPaymentMethodId() != null &&
+			!paymentMethodProps.getExternalPaymentMethodId().equals(kbPaymentMethodId.toString())) {
+			// Payment method was created in Braintree. Synchronize the payment method ID and create in KillBill only
+			try {
+				final Result<? extends PaymentMethod> result = braintreeClient.updatePaymentMethod(paymentMethodProps.getExternalPaymentMethodId(),
+																								   kbPaymentMethodId.toString());
+				if (!result.isSuccess()) {
+					throw new BraintreeException(result.getMessage());
+				}
+			} catch (final BraintreeException e) {
 				throw new PaymentPluginApiException("Could not update payment method in Braintree", e);
 			}
 		}

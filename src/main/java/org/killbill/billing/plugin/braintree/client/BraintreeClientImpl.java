@@ -167,23 +167,20 @@ public class BraintreeClientImpl implements BraintreeClient {
     }
 
     @Override
-    public Result<? extends PaymentMethod> updatePaymentMethod(String currentBraintreePaymentMethodToken, String newBraintreePaymentMethodToken, String newCustomerId) throws BraintreeException {
-        Result<? extends PaymentMethod> result;
-        try{
-            PaymentMethodRequest request = new PaymentMethodRequest()
-                    .customerId(newCustomerId)
+    public Result<? extends PaymentMethod> updatePaymentMethod(final String currentBraintreePaymentMethodToken,
+                                                               final String newBraintreePaymentMethodToken) throws BraintreeException {
+        try {
+            // Note: do NOT pass the customerId here, as if the default payment method on the customer isn't a CC, the call would fail (even if the token here is a CC).
+            final PaymentMethodRequest request = new PaymentMethodRequest()
                     .token(newBraintreePaymentMethodToken)
                     .options()
                     .verifyCard(false) // Skip verification in the sync call
                     .done();
 
-            result = gateway.paymentMethod().update(currentBraintreePaymentMethodToken, request);
+            return gateway.paymentMethod().update(currentBraintreePaymentMethodToken, request);
+        } catch (final Throwable t) {
+            throw new BraintreeException("Could not update Braintree payment method token " + currentBraintreePaymentMethodToken + " to " + newBraintreePaymentMethodToken, t);
         }
-        catch(Throwable t){
-            throw new BraintreeException("Could not synchronize KillBill payment method " + newBraintreePaymentMethodToken + " with Braintree payment method " + currentBraintreePaymentMethodToken, t);
-        }
-
-        return result;
     }
 
     @Override
