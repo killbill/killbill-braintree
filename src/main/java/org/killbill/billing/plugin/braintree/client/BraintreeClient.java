@@ -40,7 +40,7 @@ public interface BraintreeClient {
 
     Result<? extends PaymentMethod> createPaymentMethod(String braintreeCustomerId, String braintreePaymentMethodToken, String braintreeNonce, PaymentMethodType paymentMethodType) throws BraintreeException;
 
-    Result<? extends PaymentMethod> updatePaymentMethod(String currentBraintreePaymentMethodToken, String newBraintreePaymentMethodToken, String newCustomerId) throws BraintreeException;
+    Result<? extends PaymentMethod> updatePaymentMethod(String currentBraintreePaymentMethodToken, String newBraintreePaymentMethodToken) throws BraintreeException;
 
     List<? extends PaymentMethod> getPaymentMethods(String braintreeCustomerId) throws BraintreeException;
 
