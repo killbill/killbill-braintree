@@ -1,15 +1,17 @@
 /*
  * Copyright 2021 Wovenware, Inc
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
- * Wovenware licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
- * License. You may obtain a copy of the License at:
+ * License.  You may obtain a copy of the License at:
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations
  * under the License.
  */
@@ -254,52 +256,61 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 	}
 
 	@Override
-	public void addPaymentMethod(UUID kbAccountId, UUID kbPaymentMethodId, PaymentMethodPlugin paymentMethodProps,
-			boolean setDefault, Iterable<PluginProperty> properties, CallContext context)
-			throws PaymentPluginApiException {
+	public void addPaymentMethod(final UUID kbAccountId,
+								 final UUID kbPaymentMethodId,
+								 final PaymentMethodPlugin paymentMethodProps,
+								 final boolean setDefault,
+								 final Iterable<PluginProperty> properties,
+								 final CallContext context) throws PaymentPluginApiException {
+		// Support both body and query parameters based plugin properties
+		final Iterable<PluginProperty> allProperties = PluginProperties.merge(paymentMethodProps.getProperties(), properties);
+
 		final BraintreeClient braintreeClient = buildBraintreeClient(context);
-		String braintreeCustomerId = PluginProperties.getValue(BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID,
-				BraintreePluginProperties.PROPERTY_FALLBACK_VALUE, properties);
-		if(!braintreeCustomerId.equals(BraintreePluginProperties.PROPERTY_FALLBACK_VALUE)){
-			setCustomerIdCustomField(braintreeCustomerId, kbAccountId, context);
-		}
-		if (paymentMethodProps != null &&
-			paymentMethodProps.getExternalPaymentMethodId() != null &&
-			!paymentMethodProps.getExternalPaymentMethodId().equals(kbPaymentMethodId.toString())) {
-			// Payment method was created in Braintree. Synchronize the payment method ID and create in KillBill only
+		final PaymentMethod braintreePaymentMethod;
+
+		final String braintreeNonce = PluginProperties.findPluginPropertyValue(BraintreePluginProperties.PROPERTY_BT_NONCE, allProperties);
+		if (braintreeNonce != null) {
+			final String braintreeCustomerId = PluginProperties.findPluginPropertyValue(BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID,
+																						allProperties);
+			if (braintreeCustomerId == null) {
+				throw new PaymentPluginApiException("Could not create payment method in Braintree: missing {} plugin property", BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID);
+			} else {
+				// Automatically create the custom field, if needed
+				setCustomerIdCustomField(braintreeCustomerId, kbAccountId, context);
+			}
+
+			// New payment method for KillBill and Braintree
+			final String braintreePaymentMethodToken = kbPaymentMethodId.toString();
+			final String braintreePaymentMethodType = PluginProperties.getValue(BraintreePluginProperties.PROPERTY_PAYMENT_METHOD_TYPE,
+																				BraintreePluginProperties.PaymentMethodType.CARD.toString(),
+																				allProperties);
+			logger.info("Creating payment method with nonce={}, paymentMethodId={}, paymentMethodType={}", braintreeNonce, braintreePaymentMethodToken, braintreePaymentMethodType);
 			try {
-				final Result<? extends PaymentMethod> result = braintreeClient.updatePaymentMethod(paymentMethodProps.getExternalPaymentMethodId(),
-																								   kbPaymentMethodId.toString());
-				if (!result.isSuccess()) {
+				final Result<? extends PaymentMethod> result = braintreeClient.createPaymentMethod(braintreeCustomerId,
+																								   braintreePaymentMethodToken,
+																								   braintreeNonce,
+																								   BraintreePluginProperties.PaymentMethodType.valueOf(braintreePaymentMethodType.toUpperCase()));
+				if (!result.isSuccess() || !result.getTarget().getToken().equals(braintreePaymentMethodToken)) {
 					throw new BraintreeException(result.getMessage());
 				}
+
+				braintreePaymentMethod = result.getTarget();
 			} catch (final BraintreeException e) {
-				throw new PaymentPluginApiException("Could not update payment method in Braintree", e);
-			}
-		}
-		else{
-			//New payment method for KillBill and Braintree
-			String braintreeNonce = PluginProperties.getValue(BraintreePluginProperties.PROPERTY_BT_NONCE,
-					BraintreePluginProperties.PROPERTY_FALLBACK_VALUE, properties);
-			String braintreePaymentMethodToken = kbPaymentMethodId.toString();
-			String braintreePaymentMethodType = PluginProperties.getValue(BraintreePluginProperties.PROPERTY_PAYMENT_METHOD_TYPE,
-					BraintreePluginProperties.PaymentMethodType.CARD.toString(), properties);
-			logger.info("Creating payment method with nonce={}, paymentMethodId={}, paymentMethodType={}", braintreeNonce, braintreePaymentMethodToken, braintreePaymentMethodType);
-			try{
-				Result<? extends PaymentMethod> result = braintreeClient.createPaymentMethod(
-						getCustomerIdCustomField(kbAccountId, context),
-						braintreePaymentMethodToken,
-						braintreeNonce,
-						BraintreePluginProperties.PaymentMethodType.valueOf(braintreePaymentMethodType.toUpperCase()));
-				if(!result.isSuccess() || !result.getTarget().getToken().equals(braintreePaymentMethodToken))
-					throw new BraintreeException(result.getMessage());
-			}
-			catch(BraintreeException e){
 				throw new PaymentPluginApiException("Could not create payment method in Braintree", e);
 			}
+		} else {
+			// Otherwise, payment method was created in Braintree (sync use-case), in which case the external payment method id is the token
+			braintreePaymentMethod = braintreeClient.getPaymentMethod(paymentMethodProps.getExternalPaymentMethodId());
 		}
 
-		super.addPaymentMethod(kbAccountId, kbPaymentMethodId, paymentMethodProps, setDefault, properties, context);
+		final Map<String, Object> additionalDataMap = BraintreePluginProperties.toAdditionalDataMap(braintreePaymentMethod);
+
+		final DateTime utcNow = clock.getUTCNow();
+		try {
+			dao.addPaymentMethod(kbAccountId, kbPaymentMethodId, setDefault, additionalDataMap, braintreePaymentMethod.getToken(), utcNow, context.getTenantId());
+		} catch (final SQLException e) {
+			throw new PaymentPluginApiException("Unable to add payment method", e);
+		}
 	}
 
 	@Override
@@ -347,8 +358,10 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 	}
 
 	@Override
-	public List<PaymentMethodInfoPlugin> getPaymentMethods(UUID kbAccountId, boolean refreshFromGateway,
-			Iterable<PluginProperty> properties, CallContext context) throws PaymentPluginApiException {
+	public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId,
+														   final boolean refreshFromGateway,
+														   final Iterable<PluginProperty> properties,
+														   final CallContext context) throws PaymentPluginApiException {
 		// To retrieve all payment methods in Braintree, retrieve the Braintree customer id (custom field on the account)
 		final String braintreeCustomerId = getCustomerIdCustomField(kbAccountId, context);
 		// If refreshFromGateway isn't set or there is no customer id yet, simply read our tables
@@ -357,11 +370,12 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 		}
 
 		// Retrieve our currently known payment methods
-		final Map<String, BraintreePaymentMethodsRecord> existingPaymentMethodByBraintreeId = new HashMap<>();
+		final Map<String, BraintreePaymentMethodsRecord> existingPaymentMethodByToken = new HashMap<>();
 		try {
 			final List<BraintreePaymentMethodsRecord> existingBraintreePaymentMethodRecords = dao.getPaymentMethods(kbAccountId, context.getTenantId());
 			for (final BraintreePaymentMethodsRecord existingBraintreePaymentMethodRecord : existingBraintreePaymentMethodRecords) {
-				existingPaymentMethodByBraintreeId.put(existingBraintreePaymentMethodRecord.getBraintreeId(), existingBraintreePaymentMethodRecord);
+				// Braintree id is the payment method token
+				existingPaymentMethodByToken.put(existingBraintreePaymentMethodRecord.getBraintreeId(), existingBraintreePaymentMethodRecord);
 			}
 		} catch (final SQLException e) {
 			throw new PaymentPluginApiException("Unable to retrieve existing payment methods", e);
@@ -370,7 +384,7 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 		// Sync Braintree payment methods (source of truth)
 		try {
 			final List<? extends PaymentMethod> braintreePaymentMethods = buildBraintreeClient(context).getPaymentMethods(braintreeCustomerId);
-			syncPaymentMethods(kbAccountId, braintreePaymentMethods, existingPaymentMethodByBraintreeId, context);
+			syncPaymentMethods(kbAccountId, braintreePaymentMethods, existingPaymentMethodByToken, context);
 		} catch (final BraintreeException e) {
 			throw new PaymentPluginApiException("Error connecting to Braintree", e);
 		} catch (final PaymentApiException e) {
@@ -379,7 +393,7 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 			throw new PaymentPluginApiException("Error creating payment method", e);
 		}
 
-		for (final BraintreePaymentMethodsRecord braintreePaymentMethodsRecord : existingPaymentMethodByBraintreeId.values()) {
+		for (final BraintreePaymentMethodsRecord braintreePaymentMethodsRecord : existingPaymentMethodByToken.values()) {
 			logger.info("Deactivating local Braintree payment method {} - not found in Braintree", braintreePaymentMethodsRecord.getBraintreeId());
 			super.deletePaymentMethod(kbAccountId, UUID.fromString(braintreePaymentMethodsRecord.getKbPaymentMethodId()), properties, context);
 		}
@@ -560,20 +574,23 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 		}
 	}
 
-	private void syncPaymentMethods(final UUID kbAccountId, final List<? extends PaymentMethod> braintreePaymentMethods, final Map<String, BraintreePaymentMethodsRecord> existingPaymentMethodByBraintreeId, final CallContext context) throws PaymentApiException, SQLException {
+	private void syncPaymentMethods(final UUID kbAccountId,
+									final Iterable<? extends PaymentMethod> braintreePaymentMethods,
+									final Map<String, BraintreePaymentMethodsRecord> existingPaymentMethodByToken,
+									final CallContext context) throws PaymentApiException, SQLException {
 		for (final PaymentMethod paymentMethod : braintreePaymentMethods) {
 			final Map<String, Object> additionalDataMap = BraintreePluginProperties.toAdditionalDataMap(paymentMethod);
 
 			// We remove it here to build the list of local payment methods to delete
-			final BraintreePaymentMethodsRecord existingPaymentMethodRecord = existingPaymentMethodByBraintreeId.remove(paymentMethod.getToken());
+			final BraintreePaymentMethodsRecord existingPaymentMethodRecord = existingPaymentMethodByToken.remove(paymentMethod.getToken());
 			if (existingPaymentMethodRecord == null) {
 				// We don't know about it yet, create it
 				logger.info("Creating new local Braintree payment method {}", paymentMethod.getToken());
 				final List<PluginProperty> properties = PluginProperties.buildPluginProperties(additionalDataMap);
-				final BraintreePaymentMethodPlugin paymentMethodInfo = new BraintreePaymentMethodPlugin(null,
-						paymentMethod.getToken(),
-						paymentMethod.isDefault(),
-						properties);
+				final PaymentMethodPlugin paymentMethodInfo = new BraintreePaymentMethodPlugin(null,
+																							   paymentMethod.getToken(),
+																							   paymentMethod.isDefault(),
+																							   properties);
 				try {
 					killbillAPI.getPaymentApi().addPaymentMethod(getAccount(kbAccountId, context),
 																 paymentMethod.getToken(),

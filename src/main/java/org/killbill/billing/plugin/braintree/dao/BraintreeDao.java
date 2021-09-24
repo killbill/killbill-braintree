@@ -1,15 +1,17 @@
 /*
  * Copyright 2021 Wovenware, Inc
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
- * Wovenware licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
- * License. You may obtain a copy of the License at:
+ * License.  You may obtain a copy of the License at:
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations
  * under the License.
  */
@@ -58,11 +60,11 @@ public class BraintreeDao extends PluginPaymentDao<BraintreeResponsesRecord, Bra
     }
 
     // Payment methods
-    @Override
     public void addPaymentMethod(final UUID kbAccountId,
                                  final UUID kbPaymentMethodId,
                                  final boolean isDefault,
-                                 final Map<String, String> additionalDataMap,
+                                 final Map<String, Object> additionalDataMap,
+                                 final String braintreeToken,
                                  final DateTime utcNow,
                                  final UUID kbTenantId) throws SQLException {
         execute(dataSource.getConnection(),
@@ -82,7 +84,7 @@ public class BraintreeDao extends PluginPaymentDao<BraintreeResponsesRecord, Bra
                                         BRAINTREE_PAYMENT_METHODS.KB_TENANT_ID)
                                 .values(kbAccountId.toString(),
                                         kbPaymentMethodId.toString(),
-                                        kbPaymentMethodId.toString(),
+                                        braintreeToken,
                                         (short) (isDefault? TRUE : FALSE),
                                         (short) FALSE,
                                         asString(additionalDataMap),
