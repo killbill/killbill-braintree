@@ -270,10 +270,12 @@ public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeR
 
         final String braintreeNonce = PluginProperties.findPluginPropertyValue(BraintreePluginProperties.PROPERTY_BT_NONCE, allProperties);
         if (braintreeNonce != null) {
-            final String braintreeCustomerId = PluginProperties.findPluginPropertyValue(BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID,
-                                                                                        allProperties);
+            String braintreeCustomerId = PluginProperties.findPluginPropertyValue(BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID, allProperties);
             if (braintreeCustomerId == null) {
-                throw new PaymentPluginApiException("Could not create payment method in Braintree: missing {} plugin property", BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID);
+                braintreeCustomerId = getCustomerIdCustomField(kbAccountId, context);
+                if (braintreeCustomerId == null) {
+                    throw new PaymentPluginApiException("Could not create payment method in Braintree: missing {} plugin property", BraintreePluginProperties.PROPERTY_BT_CUSTOMER_ID);
+                }
             } else {
                 // Automatically create the custom field, if needed
                 setCustomerIdCustomField(braintreeCustomerId, kbAccountId, context);
