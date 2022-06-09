@@ -16,8 +16,8 @@ jobs:
     uses: killbill/gh-actions-shared/.github/workflows/integration_test.yml@main
     with:
       plugin_name: 'braintree'
-      integration_tests_goal: 'ci:braintree'
+      integration_tests_goal: 'test:plugins:braintree'
       ddl_file: 'src/main/resources/ddl.sql'
-      integration_tests_ref: 'refs/heads/integration-tests'
+      integration_tests_ref: 'refs/heads/work-for-release-0.23.x'
     secrets:
       extra-env: '{ "BRAINTREE_ENVIRONMENT": "sandbox", "BRAINTREE_MERCHANT_ID": "${{ secrets.BT_MERCHANT_ID }}", "BRAINTREE_PRIVATE_KEY": "${{ secrets.BT_PRIVATE_KEY }}", "BRAINTREE_PUBLIC_KEY": "${{ secrets.BT_PUBLIC_KEY }}" }'
