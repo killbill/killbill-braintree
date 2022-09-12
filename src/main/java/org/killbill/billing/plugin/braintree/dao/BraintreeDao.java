@@ -33,7 +33,9 @@ import com.braintreegateway.Result;
 import com.braintreegateway.Transaction;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.jooq.types.ULong;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.payment.api.TransactionType;
@@ -138,7 +140,8 @@ public class BraintreeDao extends PluginPaymentDao<BraintreeResponsesRecord, Bra
                 new WithConnectionCallback<BraintreeResponsesRecord>() {
                     @Override
                     public BraintreeResponsesRecord withConnection(final Connection conn) throws SQLException {
-                        return DSL.using(conn, dialect, settings)
+                        final DSLContext dslContext = DSL.using(conn, dialect, settings);
+                        dslContext
                                 .insertInto(BRAINTREE_RESPONSES,
                                         BRAINTREE_RESPONSES.KB_ACCOUNT_ID,
                                         BRAINTREE_RESPONSES.KB_PAYMENT_ID,
@@ -160,8 +163,9 @@ public class BraintreeDao extends PluginPaymentDao<BraintreeResponsesRecord, Bra
                                         asString(additionalDataMap),
                                         toLocalDateTime(utcNow),
                                         kbTenantId.toString())
-                                .returning()
-                                .fetchOne();
+                                .execute();
+                        final long lastId = dslContext.lastID().longValue();
+                        return dslContext.fetchOne(BRAINTREE_RESPONSES, BRAINTREE_RESPONSES.RECORD_ID.eq(ULong.valueOf(lastId)));
                     }
                 });
     }
