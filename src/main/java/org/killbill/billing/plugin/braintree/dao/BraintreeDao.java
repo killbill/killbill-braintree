@@ -33,6 +33,7 @@ import com.braintreegateway.Result;
 import com.braintreegateway.Transaction;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.PluginProperty;
@@ -135,35 +136,33 @@ public class BraintreeDao extends PluginPaymentDao<BraintreeResponsesRecord, Bra
         final Map<String, Object> additionalDataMap = BraintreePluginProperties.toAdditionalDataMap(braintreeResult);
 
         return execute(dataSource.getConnection(),
-                new WithConnectionCallback<BraintreeResponsesRecord>() {
-                    @Override
-                    public BraintreeResponsesRecord withConnection(final Connection conn) throws SQLException {
-                        return DSL.using(conn, dialect, settings)
-                                .insertInto(BRAINTREE_RESPONSES,
-                                        BRAINTREE_RESPONSES.KB_ACCOUNT_ID,
-                                        BRAINTREE_RESPONSES.KB_PAYMENT_ID,
-                                        BRAINTREE_RESPONSES.KB_PAYMENT_TRANSACTION_ID,
-                                        BRAINTREE_RESPONSES.TRANSACTION_TYPE,
-                                        BRAINTREE_RESPONSES.AMOUNT,
-                                        BRAINTREE_RESPONSES.CURRENCY,
-                                        BRAINTREE_RESPONSES.BRAINTREE_ID,
-                                        BRAINTREE_RESPONSES.ADDITIONAL_DATA,
-                                        BRAINTREE_RESPONSES.CREATED_DATE,
-                                        BRAINTREE_RESPONSES.KB_TENANT_ID)
-                                .values(kbAccountId.toString(),
-                                        kbPaymentId.toString(),
-                                        kbPaymentTransactionId.toString(),
-                                        transactionType.toString(),
-                                        amount,
-                                        currency == null ? null : currency.name(),
-                                        BraintreeClient.getTransactionInstance(braintreeResult).getId(),
-                                        asString(additionalDataMap),
-                                        toLocalDateTime(utcNow),
-                                        kbTenantId.toString())
-                                .returning()
-                                .fetchOne();
-                    }
-                });
+                connection -> DSL.using(connection, dialect, settings).transactionResult(configuration -> {
+                    final DSLContext dslContext = DSL.using(configuration);
+                    dslContext.insertInto(BRAINTREE_RESPONSES,
+                                    BRAINTREE_RESPONSES.KB_ACCOUNT_ID,
+                                    BRAINTREE_RESPONSES.KB_PAYMENT_ID,
+                                    BRAINTREE_RESPONSES.KB_PAYMENT_TRANSACTION_ID,
+                                    BRAINTREE_RESPONSES.TRANSACTION_TYPE,
+                                    BRAINTREE_RESPONSES.AMOUNT,
+                                    BRAINTREE_RESPONSES.CURRENCY,
+                                    BRAINTREE_RESPONSES.BRAINTREE_ID,
+                                    BRAINTREE_RESPONSES.ADDITIONAL_DATA,
+                                    BRAINTREE_RESPONSES.CREATED_DATE,
+                                    BRAINTREE_RESPONSES.KB_TENANT_ID)
+                            .values(kbAccountId.toString(),
+                                    kbPaymentId.toString(),
+                                    kbPaymentTransactionId.toString(),
+                                    transactionType.toString(),
+                                    amount,
+                                    currency == null ? null : currency.name(),
+                                    BraintreeClient.getTransactionInstance(braintreeResult).getId(),
+                                    asString(additionalDataMap),
+                                    toLocalDateTime(utcNow),
+                                    kbTenantId.toString())
+                            .execute();
+                    return dslContext.fetchOne(BRAINTREE_RESPONSES,
+                            BRAINTREE_RESPONSES.RECORD_ID.eq(BRAINTREE_RESPONSES.RECORD_ID.getDataType().convert(dslContext.lastID())));
+            }));
     }
 
     public BraintreeResponsesRecord updateResponse(final UUID kbPaymentTransactionId,
