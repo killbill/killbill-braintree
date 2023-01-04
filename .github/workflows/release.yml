@@ -78,6 +78,10 @@ jobs:
           OSSRH_USER: ${{ secrets.OSSRH_USER }}
           OSSRH_PASS: ${{ secrets.OSSRH_PASS }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          BRAINTREE_ENVIRONMENT: sandbox
+          BRAINTREE_MERCHANT_ID: ${{ secrets.BT_MERCHANT_ID }}
+          BRAINTREE_PRIVATE_KEY: ${{ secrets.BT_PRIVATE_KEY }}
+          BRAINTREE_PUBLIC_KEY: ${{ secrets.BT_PUBLIC_KEY }}
         # It will still check the remote but hopefully not download much (0 B at 0 B/s). -o isn't safe because of MDEP-82 (see above).
         run: |
           mvn ${MAVEN_FLAGS} release:clean release:prepare release:perform
