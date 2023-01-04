@@ -34,7 +34,7 @@
         <developerConnection>scm:git:git@github.com:killbill/killbill-braintree.git</developerConnection>
         <tag>HEAD</tag>
         <url>http://github.com/killbill/killbill-braintree/tree/master</url>
-    </scm>    
+    </scm>
     <properties>
         <check.fail-spotbugs>true</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
