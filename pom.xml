@@ -28,6 +28,13 @@
     <packaging>bundle</packaging>
     <name>Kill Bill Braintree plugin</name>
     <description>Kill Bill braintree plugin</description>
+    <url>https://github.com/killbill/killbill-braintree</url>
+    <scm>
+        <connection>scm:git:git://github.com/killbill/killbill-braintree.git</connection>
+        <developerConnection>scm:git:git@github.com:killbill/killbill-braintree.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>http://github.com/killbill/killbill-braintree/tree/master</url>
+    </scm>    
     <properties>
         <check.fail-spotbugs>true</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
