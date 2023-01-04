@@ -23,4 +23,7 @@
         <Class name="org.killbill.billing.plugin.braintree.api.BraintreePaymentTransactionInfoPlugin"/>
         <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS"/>
     </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
