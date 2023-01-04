@@ -2,6 +2,14 @@
 
 Plugin to use [Braintree](https://www.braintreepayments.com/) as a gateway.
 
+## Kill Bill compatibility
+-----------------------
+
+| Plugin version | Kill Bill version |
+| -------------: | ----------------: |
+| 0.0.y          | 0.22.z            |
+| 1.0.y          | 0.24.z            |
+
 ## Requirements
 
 • An active Braintree account is required for using the plugin. A Braintree Sandbox account may be used for testing purposes.
