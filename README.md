@@ -109,7 +109,9 @@ curl -v \
      "http://127.0.0.1:8080/1.0/kb/accounts/<ACCOUNT_ID>/paymentMethods?isDefault=true"
 ```
 
-5. Use the `paymentMethodId` to charge the customer.
+5. Create an [external charge](https://killbill.github.io/slate/#invoice-create-external-charge-s) on the account.
+
+6. Use the `paymentMethodId` to [trigger payment](https://killbill.github.io/slate/#account-trigger-a-payment-for-all-unpaid-invoices) (required only if the ``paymentMethodId` is not set as the default payment).
 
 ## Plugin Internals
 
@@ -178,7 +180,7 @@ curl -v \
      "http://127.0.0.1:8080/1.0/kb/accounts/<ACCOUNT_ID>/paymentMethods?isDefault=true"
 ```
 
-7. Use the `paymentMethodId` to charge the customer.
+7. Use the `paymentMethodId` to charge the customer as required.
 
 A full end-to-end integration demo that demonstrates Braintree integration is available [here](https://github.com/killbill/killbill-braintree-demo).
 
