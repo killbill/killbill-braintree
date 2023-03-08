@@ -111,7 +111,7 @@ curl -v \
 
 5. Create an [external charge](https://killbill.github.io/slate/#invoice-create-external-charge-s) on the account.
 
-6. Use the `paymentMethodId` to [trigger payment](https://killbill.github.io/slate/#account-trigger-a-payment-for-all-unpaid-invoices) (required only if the ``paymentMethodId` is not set as the default payment).
+6. Use the `paymentMethodId` to [trigger payment](https://killbill.github.io/slate/#account-trigger-a-payment-for-all-unpaid-invoices) (required only if the `paymentMethodId` is not set as the default payment).
 
 ## Plugin Internals
 
