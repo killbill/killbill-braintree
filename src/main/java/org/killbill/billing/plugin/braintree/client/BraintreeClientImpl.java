@@ -29,6 +29,8 @@ import java.util.List;
 
 public class BraintreeClientImpl implements BraintreeClient {
 
+    private static final String BRAINTREE_CHANNEL = "TheBillingProjectLLC_BT";
+
     private final BraintreeGateway gateway;
 
     public BraintreeClientImpl(BraintreeGateway braintreeGateway) {
@@ -42,6 +44,7 @@ public class BraintreeClientImpl implements BraintreeClient {
             TransactionRequest request = new TransactionRequest()
                     .orderId(orderId)
                     .amount(amount)
+                    .channel(BRAINTREE_CHANNEL)
                     .paymentMethodNonce(braintreePaymentMethodNonce)
                     .options()
                         .submitForSettlement(submitForSettlement)
