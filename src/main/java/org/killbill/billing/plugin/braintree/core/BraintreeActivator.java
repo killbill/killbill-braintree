@@ -21,6 +21,7 @@ import java.util.Hashtable;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.flywaydb.core.Flyway;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
@@ -49,6 +50,12 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		super.start(context);
 		final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
+		// Run Flyway migrations to create/update database tables
+		final Flyway flyway = Flyway.configure(getClass().getClassLoader())
+				.dataSource(dataSource.getDataSource())
+				.locations("classpath:migration")
+				.load();
+		flyway.migrate();
 
 		// Register an event listener for plugin configuration
 		braintreeConfigurationHandler = new BraintreeConfigPropertiesConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
