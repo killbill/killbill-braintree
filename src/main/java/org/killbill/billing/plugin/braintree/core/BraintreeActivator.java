@@ -55,6 +55,7 @@ public class BraintreeActivator extends KillbillActivatorBase {
 			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
 					.dataSource(dataSource.getDataSource())
 					.locations("classpath:migration")
+					.table("braintree_schema_history")
 					.baselineOnMigrate(true)
 					.load();
 			flyway.migrate();
