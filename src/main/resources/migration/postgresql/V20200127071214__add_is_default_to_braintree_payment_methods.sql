@@ -15,7 +15,4 @@
  * under the License.
  */
 
-/* We cannot use timestamp in MySQL because of the implicit TimeZone conversions it does behind the scenes */
-CREATE DOMAIN datetime AS timestamp without time zone;
-
-CREATE DOMAIN longtext AS text;
+ALTER TABLE braintree_payment_methods ADD COLUMN is_default SMALLINT NOT NULL DEFAULT 0;
