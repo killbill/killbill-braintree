@@ -51,12 +51,14 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
 		// Run Flyway migrations to create/update database tables
-		final Flyway flyway = Flyway.configure(getClass().getClassLoader())
-				.dataSource(dataSource.getDataSource())
-				.locations("classpath:migration")
-				.baselineOnMigrate(true)
-				.load();
-		flyway.migrate();
+		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
+			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
+					.dataSource(dataSource.getDataSource())
+					.locations("classpath:migration")
+					.baselineOnMigrate(true)
+					.load();
+			flyway.migrate();
+		}
 
 		// Register an event listener for plugin configuration
 		braintreeConfigurationHandler = new BraintreeConfigPropertiesConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
