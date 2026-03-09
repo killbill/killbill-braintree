@@ -50,16 +50,7 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		super.start(context);
 		final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
-		// Run Flyway migrations to create/update database tables
-		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
-			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
-					.dataSource(dataSource.getDataSource())
-					.locations("classpath:migration")
-					.table("braintree_schema_history")
-					.baselineOnMigrate(true)
-					.load();
-			flyway.migrate();
-		}
+		runMigrationsIfEnabled();
 
 		// Register an event listener for plugin configuration
 		braintreeConfigurationHandler = new BraintreeConfigPropertiesConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
@@ -118,5 +109,20 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		final Hashtable<String, String> props = new Hashtable<>();
 		props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
 		registrar.registerService(context, Healthcheck.class, healthcheck, props);
+	}
+
+	private void runMigrationsIfEnabled() {
+		// Run Flyway migrations to create/update database tables
+		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
+			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
+					.dataSource(dataSource.getDataSource())
+					.locations("classpath:migration")
+					.table("braintree_schema_history")
+					.baselineOnMigrate(true)
+					.load();
+			flyway.migrate();
+		} else {
+			logger.info("Skipping Flyway migrations as 'runMigrations' is set to false");
+		}
 	}
 }
