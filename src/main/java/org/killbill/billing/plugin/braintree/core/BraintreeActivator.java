@@ -116,7 +116,7 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
 			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
 					.dataSource(dataSource.getDataSource())
-					.locations("classpath:migration")
+					.locations("classpath:migration/mysql")
 					.table("braintree_schema_history")
 					.baselineOnMigrate(true)
 					.load();
