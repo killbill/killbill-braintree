@@ -16,6 +16,7 @@
 
 package org.killbill.billing.plugin.braintree.core;
 
+import java.sql.SQLException;
 import java.util.Hashtable;
 
 import javax.servlet.Servlet;
@@ -34,6 +35,8 @@ import org.killbill.billing.plugin.braintree.dao.BraintreeDao;
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.billing.plugin.dao.PluginDao;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,9 +117,31 @@ public class BraintreeActivator extends KillbillActivatorBase {
 	private void runMigrationsIfEnabled() {
 		// Run Flyway migrations to create/update database tables
 		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
+			DBEngine dbEngine;
+			try {
+				dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
+			} catch (final SQLException e) {
+				logger.warn("Unable to determine database engine, defaulting to MySQL migrations", e);
+				dbEngine = DBEngine.MYSQL;
+			}
+
+			final String locations;
+			switch (dbEngine) {
+				case POSTGRESQL:
+					locations = "classpath:migration/postgresql";
+					break;
+				case GENERIC:
+				case H2:
+				case MYSQL:
+				default:
+					// H2 and GENERIC use MySQL-compatible migration scripts
+					locations = "classpath:migration/mysql";
+					break;
+			}
+
 			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
 					.dataSource(dataSource.getDataSource())
-					.locations("classpath:migration/mysql")
+					.locations(locations)
 					.table("braintree_schema_history")
 					.baselineOnMigrate(true)
 					.load();
