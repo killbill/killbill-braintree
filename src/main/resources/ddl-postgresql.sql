@@ -16,6 +16,12 @@
  */
 
 /* We cannot use timestamp in MySQL because of the implicit TimeZone conversions it does behind the scenes */
-CREATE DOMAIN datetime AS timestamp without time zone;
+DO $$ BEGIN
+    CREATE DOMAIN datetime AS timestamp without time zone;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE DOMAIN longtext AS text;
+DO $$ BEGIN
+    CREATE DOMAIN longtext AS text;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
