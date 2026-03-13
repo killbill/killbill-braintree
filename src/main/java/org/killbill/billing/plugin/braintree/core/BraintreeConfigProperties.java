@@ -42,7 +42,8 @@ public class BraintreeConfigProperties {
 	private static final String KEY_VALUE_DELIMITER = "#";
 	private static final String DEFAULT_CONNECTION_TIMEOUT = "30000";
 	private static final String DEFAULT_READ_TIMEOUT = "60000";
-	
+	private static final String DEFAULT_RUN_MIGRATIONS = "true";
+
 	private final String region;
     private final String btEnvironment;
     private final String btMerchantId;
@@ -54,7 +55,8 @@ public class BraintreeConfigProperties {
 	private final Map<String, Period> paymentMethodToExpirationPeriod = new LinkedHashMap<String, Period>();
 	private final String chargeDescription;
 	private final String chargeStatementDescriptor;
-	
+	private final boolean runMigrations;
+
 	public BraintreeConfigProperties(final Properties properties, final String region) {
 		this.region = region;
 		this.btEnvironment = properties.getProperty(PROPERTY_PREFIX + "btEnvironment", "sandbox");
@@ -66,6 +68,7 @@ public class BraintreeConfigProperties {
 		this.pendingPaymentExpirationPeriod = readPendingExpirationProperty(properties);
 		this.chargeDescription = Ascii.truncate(MoreObjects.firstNonNull(properties.getProperty(PROPERTY_PREFIX + "chargeDescription"), "Kill Bill charge"), 22, "...");
 		this.chargeStatementDescriptor = Ascii.truncate(MoreObjects.firstNonNull(properties.getProperty(PROPERTY_PREFIX + "chargeStatementDescriptor"), "Kill Bill charge"), 22, "...");
+		this.runMigrations = Boolean.parseBoolean(properties.getProperty(PROPERTY_PREFIX + "runMigrations", DEFAULT_RUN_MIGRATIONS));
 	}
 
 	public String getRegion() {
@@ -114,6 +117,14 @@ public class BraintreeConfigProperties {
 
 	public String getChargeStatementDescriptor() {
 		return chargeStatementDescriptor;
+	}
+
+	public boolean isRunMigrations() {
+		return runMigrations;
+	}
+
+	public static boolean shouldRunMigrations(final Properties properties) {
+		return Boolean.parseBoolean(properties.getProperty(PROPERTY_PREFIX + "runMigrations", DEFAULT_RUN_MIGRATIONS));
 	}
 
 	public Period getPendingPaymentExpirationPeriod(@Nullable final String paymentMethod) {
