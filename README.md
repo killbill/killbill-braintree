@@ -16,7 +16,8 @@ A full end-to-end integration demo is available [here](https://github.com/killbi
 ## Requirements
 
 * An active Braintree account is required for using the plugin. A Braintree sandbox account may be used for testing purposes.
-* The plugin needs a database. The latest version of the schema can be found [here](https://github.com/killbill/killbill-braintree/tree/master/src/main/resources).
+* The plugin needs a database. The database tables are automatically created and updated at plugin startup by default. Alternatively, if you would like to manage the database schema manually, you can disable automatic migrations and use the SQL scripts provided in the (https://github.com/killbill/killbill-braintree/tree/master/src/main/resources/migration)[src/main/resources/migration] directory to create or update the database tables as needed. See the [Configuration](#configuration) section below for details about disabling automatic migrations.
+
 
 ## Build
 
@@ -72,6 +73,23 @@ Some important notes:
 * Use `btEnvironment=sandbox` only for when a sandbox account is used. Other possible values include **development**, **qa**, and **production**. See Braintree documentation for details.
 * The plugin attempts to load the credentials either from the per-tenant configuration or the Kill Bill properties file  while the unit tests require the properties to be set as environment variables.
 * In order to facilitate automated testing, you should disable all fraud detection within your sandbox account. These can generate gateway rejection errors when processing multiple test transactions. In particular make sure to disable [Duplicate Transaction Checking](https://articles.braintreepayments.com/control-panel/transactions/duplicate-checking#configuring-duplicate-transaction-checking).
+
+In addition, the `org.killbill.billing.plugin.braintree.runMigrations` property can be used to control Flyway DB migrations at plugin startup. This property eliminates the need to manually install or update the database tables, as the plugin will handle schema setup automatically.
+
+Default value:
+
+```properties
+org.killbill.billing.plugin.braintree.runMigrations=true
+```
+
+To skip automatic migrations (for example, if you prefer to manage the database schema manually), set:
+
+```properties
+org.killbill.billing.plugin.braintree.runMigrations=false
+```
+
+
+When `org.killbill.billing.plugin.braintree.runMigrations` is disabled, ensure that the required database tables are created manually using the SQL scripts provided in the (https://github.com/killbill/killbill-braintree/tree/master/src/main/resources/migration)[src/main/resources/migration] directory.
 
 ## Testing
 
@@ -223,6 +241,3 @@ curl -v \
      -H "X-Killbill-Comment: demo" \
      "http://127.0.0.1:8080/1.0/kb/accounts/<ACCOUNT_ID>/paymentMethods/refresh"
 ```
-
-
-

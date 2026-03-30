@@ -16,11 +16,13 @@
 
 package org.killbill.billing.plugin.braintree.core;
 
+import java.sql.SQLException;
 import java.util.Hashtable;
 
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.flywaydb.core.Flyway;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
@@ -33,6 +35,8 @@ import org.killbill.billing.plugin.braintree.dao.BraintreeDao;
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.billing.plugin.dao.PluginDao;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +53,7 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		super.start(context);
 		final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
+		runMigrationsIfEnabled();
 
 		// Register an event listener for plugin configuration
 		braintreeConfigurationHandler = new BraintreeConfigPropertiesConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
@@ -107,5 +112,42 @@ public class BraintreeActivator extends KillbillActivatorBase {
 		final Hashtable<String, String> props = new Hashtable<>();
 		props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
 		registrar.registerService(context, Healthcheck.class, healthcheck, props);
+	}
+
+	private void runMigrationsIfEnabled() {
+		// Run Flyway migrations to create/update database tables
+		if (BraintreeConfigProperties.shouldRunMigrations(configProperties.getProperties())) {
+			DBEngine dbEngine;
+			try {
+				dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
+			} catch (final SQLException e) {
+				logger.warn("Unable to determine database engine, defaulting to MySQL migrations", e);
+				dbEngine = DBEngine.MYSQL;
+			}
+
+			final String locations;
+			switch (dbEngine) {
+				case POSTGRESQL:
+					locations = "classpath:migration/postgresql";
+					break;
+				case GENERIC:
+				case H2:
+				case MYSQL:
+				default:
+					// H2 and GENERIC use MySQL-compatible migration scripts
+					locations = "classpath:migration/mysql";
+					break;
+			}
+
+			final Flyway flyway = Flyway.configure(getClass().getClassLoader())
+					.dataSource(dataSource.getDataSource())
+					.locations(locations)
+					.table("braintree_schema_history")
+					.baselineOnMigrate(true)
+					.load();
+			flyway.migrate();
+		} else {
+			logger.info("Skipping Flyway migrations as 'runMigrations' is set to false");
+		}
 	}
 }
