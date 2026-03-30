@@ -89,7 +89,7 @@ org.killbill.billing.plugin.braintree.runMigrations=false
 ```
 
 
-When `org.killbill.billing.plugin.braintree.runMigrations` is disabled, ensure that the required database tables are created manually using the SQL scripts provided in the (https://github.com/killbill/killbill-braintree/tree/master/src/main/resources/migration)[src/main/resources/migration] directory.
+When `org.killbill.billing.plugin.braintree.runMigrations` is disabled, ensure that the required database tables are created manually using the SQL scripts provided in the [https://github.com/killbill/killbill-braintree/tree/master/src/main/resources/migration](src/main/resources/migration) directory.
 
 ## Testing
 
