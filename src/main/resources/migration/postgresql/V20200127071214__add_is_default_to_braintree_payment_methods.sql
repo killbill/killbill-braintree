@@ -1,6 +1,6 @@
 /*
  * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2014-2026 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -15,13 +15,4 @@
  * under the License.
  */
 
-/* We cannot use timestamp in MySQL because of the implicit TimeZone conversions it does behind the scenes */
-DO $$ BEGIN
-    CREATE DOMAIN datetime AS timestamp without time zone;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-DO $$ BEGIN
-    CREATE DOMAIN longtext AS text;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+ALTER TABLE braintree_payment_methods ADD COLUMN is_default SMALLINT NOT NULL DEFAULT 0;
