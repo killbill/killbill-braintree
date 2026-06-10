@@ -18,7 +18,7 @@ package org.killbill.billing.plugin.braintree.core;
 
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Environment;

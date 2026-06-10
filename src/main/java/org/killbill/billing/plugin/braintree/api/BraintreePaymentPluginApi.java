@@ -65,7 +65,7 @@ import org.killbill.clock.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class BraintreePaymentPluginApi extends PluginPaymentPluginApi<BraintreeResponsesRecord, BraintreeResponses, BraintreePaymentMethodsRecord, BraintreePaymentMethods> {
 
