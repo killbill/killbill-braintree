@@ -20,11 +20,11 @@
     <parent>
         <groupId>org.kill-bill.billing</groupId>
         <artifactId>killbill-oss-parent</artifactId>
-        <version>0.146.67</version>
+        <version>0.147.20</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>braintree-plugin</artifactId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Kill Bill Braintree plugin</name>
     <description>Kill Bill braintree plugin</description>
@@ -39,19 +39,10 @@
         <check.fail-spotbugs>true</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
         <!-- Required by killbill-oss-parent dependencyManagement (Maven 3.9+ validates interpolation) -->
-        <killbill.version>0.24.16</killbill.version>
+        <killbill.version>0.25.4</killbill.version>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <osgi.private>org.killbill.billing.plugin.braintree.*</osgi.private>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.reactivestreams</groupId>
-                <artifactId>reactive-streams</artifactId>
-                <version>1.0.4</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.braintreepayments.gateway</groupId>
@@ -77,16 +68,8 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.zonky.test</groupId>
@@ -94,13 +77,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -116,10 +103,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>7.7.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jooby</groupId>
-            <artifactId>jooby</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
@@ -186,12 +169,24 @@
         <dependency>
             <groupId>org.kill-bill.billing.plugin.java</groupId>
             <artifactId>killbill-base-plugin</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.kill-bill.commons</groupId>
+                    <artifactId>killbill-jooby</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing.plugin.java</groupId>
             <artifactId>killbill-base-plugin</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.kill-bill.commons</groupId>
+                    <artifactId>killbill-jooby</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
@@ -212,39 +207,31 @@
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-common</artifactId>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-h2</artifactId>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-mysql</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-embeddeddb-mysql</artifactId>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-postgresql</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-embeddeddb-postgresql</artifactId>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-jdbi</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-jooby</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>

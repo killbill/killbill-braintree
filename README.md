@@ -12,6 +12,9 @@ A full end-to-end integration demo is available [here](https://github.com/killbi
 | -------------: | ----------------: |
 | 0.0.y          | 0.22.z            |
 | 1.0.y          | 0.24.z            |
+| 2.0.y          | 0.26.z            |
+
+In 2.0.x, the Java EE `javax` namespace is replaced by the `jakarta` namespace.
 
 ## Requirements
 

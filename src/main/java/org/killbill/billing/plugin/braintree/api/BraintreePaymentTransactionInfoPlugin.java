@@ -36,7 +36,7 @@ import org.killbill.billing.plugin.braintree.core.BraintreePluginProperties;
 import org.killbill.billing.plugin.braintree.dao.BraintreeDao;
 import org.killbill.billing.plugin.braintree.dao.gen.tables.records.BraintreeResponsesRecord;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class BraintreePaymentTransactionInfoPlugin extends PluginPaymentTransactionInfoPlugin {
 

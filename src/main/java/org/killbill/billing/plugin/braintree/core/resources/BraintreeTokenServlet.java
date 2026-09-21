@@ -18,7 +18,7 @@ package org.killbill.billing.plugin.braintree.core.resources;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Environment;
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 import org.jooby.mvc.GET;
 import org.jooby.mvc.Local;
 import org.jooby.mvc.Path;
@@ -27,8 +27,8 @@ import org.killbill.billing.plugin.braintree.core.BraintreeConfigPropertiesConfi
 import org.killbill.billing.tenant.api.Tenant;
 import org.killbill.billing.util.entity.Entity;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Optional;
 
 @Singleton

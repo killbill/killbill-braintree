@@ -25,7 +25,7 @@ import com.braintreegateway.exceptions.BraintreeException;
 
 import org.killbill.billing.plugin.braintree.core.BraintreePluginProperties.PaymentMethodType;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import java.math.BigDecimal;
 import java.util.List;

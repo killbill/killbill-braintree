@@ -21,7 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import org.joda.time.Period;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
